@@ -227,9 +227,15 @@ export class OB11Constructor {
             } else if (element.faceElement) {
                 message_data["type"] = OB11MessageDataType.face;
                 message_data["data"]["id"] = element.faceElement.faceIndex.toString();
-            } else if (element.marketFaceElement) {
+            }
+            else if (element.marketFaceElement) {
                 message_data["type"] = OB11MessageDataType.mface;
-                message_data["data"]["text"] = element.marketFaceElement.faceName;
+                message_data["data"]["faceName"] = element.marketFaceElement.faceName.toString();
+                message_data["data"]["faceId"] = element.marketFaceElement.emojiId.toString();
+                message_data["data"]["imageHeight"] = element.marketFaceElement.imageHeight.toString();
+                message_data["data"]["imageWidth"] = element.marketFaceElement.imageWidth.toString();
+                message_data["data"]["key"] = element.marketFaceElement.key.toString();
+                message_data["data"]["tabId"] = element.marketFaceElement.emojiPackageId.toString();
             } else if (element.markdownElement){
                 message_data["type"] = OB11MessageDataType.markdown;
                 message_data["data"]["data"] = element.markdownElement.content;
