@@ -27,7 +27,7 @@ export async function checkNewVersion() {
 export async function upgradeLLOneBot() {
   const latestVersion = await getRemoteVersion()
   if (latestVersion && latestVersion != '') {
-    const downloadUrl = 'https://github.com/LLOneBot/LLOneBot/releases/download/v' + latestVersion + '/LLOneBot.zip'
+    const downloadUrl = 'https://github.com/pk5ls20/LLOneBot/releases/download/v' + latestVersion + '/LLOneBot.zip'
     const filePath = path.join(TEMP_DIR, './update-' + latestVersion + '.zip')
     let downloadSuccess = false
     // 多镜像下载
