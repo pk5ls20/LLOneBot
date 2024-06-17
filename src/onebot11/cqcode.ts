@@ -1,4 +1,5 @@
 import {OB11MessageData} from "./types";
+import {log} from "../common/utils/log";
 
 const pattern = /\[CQ:(\w+)((,\w+=[^,\]]*)*)\]/
 
@@ -50,7 +51,6 @@ export function encodeCQCode(data: OB11MessageData) {
         return text.replace(/\&/g, '&amp;')
             .replace(/\[/g, '&#91;')
             .replace(/\]/g, '&#93;')
-            
     };
 
     const CQCodeEscape = (text: string) => {

@@ -14,7 +14,7 @@ import {
     GrayTipElementSubType,
     Group,
     GroupMember,
-    IMAGE_HTTP_HOST, IMAGE_HTTP_HOST_NT,
+    IMAGE_HTTP_HOST, IMAGE_HTTP_HOST_NT, PicType,
     RawMessage,
     SelfInfo,
     Sex,
@@ -134,54 +134,43 @@ export class OB11Constructor {
                     log("获取不到引用的消息", e.stack, element.replyElement.replayMsgSeq)
                 }
 
-            } else if (element.picElement) {
+            }
+            else if (element.picElement) {
+                // log("收到图片消息", JSON.stringify(element.picElement))
                 message_data["type"] = "image"
                 // message_data["data"]["file"] = element.picElement.sourcePath
-                message_data["data"]["file"] = element.picElement.fileName
-                // message_data["data"]["path"] = element.picElement.sourcePath
-                const url = element.picElement.originImageUrl
-                const fileMd5 = element.picElement.md5HexStr
-                // let currentRKey = config.imageRKey || "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
-                let currentRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
-                if (url) {
-                    if (url.startsWith("/download")) {
-                        if (url.includes("&rkey=")) {
-                            // 正则提取rkey
-                            // const rkey = url.match(/&rkey=([^&]+)/)[1]
-                            // // log("图片url已有rkey", rkey)
-                            // if (rkey != currentRKey){
-                            //     config.imageRKey = rkey
-                            //     if (Date.now() - lastRKeyUpdateTime > 1000 * 60) {
-                            //         lastRKeyUpdateTime = Date.now()
-                            //         getConfigUtil().setConfig(config)
-                            //     }
-                            // }
-                            message_data["data"]["url"] = IMAGE_HTTP_HOST_NT + url
-                        }
-                        else{
-                            message_data["data"]["url"] = IMAGE_HTTP_HOST_NT + url + "&rkey=" + currentRKey
-                        }
-                    } else {
-                        message_data["data"]["url"] = IMAGE_HTTP_HOST + url
-                    }
-                } else if (fileMd5) {
-                    message_data["data"]["url"] = `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${fileMd5.toUpperCase()}/0`
+                let fileName = element.picElement.fileName
+                const sourcePath = element.picElement.sourcePath
+                if (element.picElement.picType === PicType.gif && !fileName.endsWith('.gif')) {
+                    fileName += '.gif'
                 }
+                message_data['data']['file'] = fileName
+                // message_data["data"]["path"] = element.picElement.sourcePath
+                message_data['data']['url'] = await NTQQFileApi.getImageUrl(element.picElement, msg.chatType)
                 // message_data["data"]["file_id"] = element.picElement.fileUuid
                 message_data["data"]["file_size"] = element.picElement.fileSize
-                dbUtil.addFileCache(element.picElement.fileName, {
-                    fileName: element.picElement.fileName,
-                    filePath: element.picElement.sourcePath,
-                    fileSize: element.picElement.fileSize.toString(),
-                    url: message_data["data"]["url"],
-                    downloadFunc: async () => {
-                        await NTQQFileApi.downloadMedia(msg.msgId, msg.chatType, msg.peerUid,
-                            element.elementId, element.picElement.thumbPath?.get(0) || "", element.picElement.sourcePath)
-                    }
-                }).then()
+                message_data["data"]["subType"] = (element.picElement?.picSubType ?? -1).toString();
+                dbUtil
+                    .addFileCache(fileName, {
+                        fileName,
+                        filePath: sourcePath,
+                        fileSize: element.picElement.fileSize.toString(),
+                        url: message_data['data']['url'],
+                        downloadFunc: async () => {
+                            await NTQQFileApi.downloadMedia(
+                                msg.msgId,
+                                msg.chatType,
+                                msg.peerUid,
+                                element.elementId,
+                                element.picElement.thumbPath?.get(0) || '',
+                                element.picElement.sourcePath,
+                            )
+                        },
+                    })
+                    .then()
                 // 不在自动下载图片
-
-            } else if (element.videoElement || element.fileElement) {
+            }
+            else if (element.videoElement || element.fileElement) {
                 const videoOrFileElement = element.videoElement || element.fileElement
                 const ob11MessageDataType = element.videoElement ? OB11MessageDataType.video : OB11MessageDataType.file
                 message_data["type"] = ob11MessageDataType;

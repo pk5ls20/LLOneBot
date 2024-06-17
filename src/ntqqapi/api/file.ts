@@ -7,12 +7,13 @@ import {
     ChatCacheList,
     ChatCacheListItemBasic,
     ChatType,
-    ElementType
+    ElementType, IMAGE_HTTP_HOST, IMAGE_HTTP_HOST_NT, PicElement
 } from "../types";
 import path from "path";
 import fs from "fs";
 import {ReceiveCmdS} from "../hook";
 import {log} from "../../common/utils/log";
+import {rkeyManager} from "./rkey";
 
 export class NTQQFileApi {
     static async getFileType(filePath: string) {
@@ -125,6 +126,33 @@ export class NTQQFileApi {
         return await callNTQQApi<{ width: number, height: number }>({
             className: NTQQApiClass.FS_API, methodName: NTQQApiMethod.IMAGE_SIZE, args: [filePath]
         })
+    }
+
+    static async getImageUrl(picElement: PicElement, chatType: ChatType) {
+        const isPrivateImage = chatType !== ChatType.group
+        const url = picElement.originImageUrl // 没有域名
+        const md5HexStr = picElement.md5HexStr
+        const fileMd5 = picElement.md5HexStr
+        const fileUuid = picElement.fileUuid
+        if (url) {
+            if (url.startsWith('/download')) {
+                // console.log('rkey', rkey);
+                if (url.includes('&rkey=')) {
+                    return IMAGE_HTTP_HOST_NT + url
+                }
+                const rkeyData = await rkeyManager.getRkey();
+                const existsRKey = isPrivateImage ? rkeyData.private_rkey : rkeyData.group_rkey;
+                return IMAGE_HTTP_HOST_NT + url + `${existsRKey}`
+            } else {
+                // 老的图片url，不需要rkey
+                return IMAGE_HTTP_HOST + url
+            }
+        } else if (fileMd5 || md5HexStr) {
+            // 没有url，需要自己拼接
+            return `${IMAGE_HTTP_HOST}/gchatpic_new/0/0-0-${(fileMd5 || md5HexStr)!.toUpperCase()}/0`
+        }
+        log('图片url获取失败', picElement)
+        return ''
     }
 
 }
