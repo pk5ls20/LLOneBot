@@ -1,10 +1,10 @@
 {
   "manifest_version": 4,
   "type": "extension",
-  "name": "LLOneBot v30.20.3",
+  "name": "LLOneBot v30.21.0",
   "slug": "LLOneBot",
   "description": "使你的NTQQ支持OneBot11协议进行QQ机器人开发, 不支持商店在线更新",
-  "version": "30.20.3",
+  "version": "30.21.0",
   "icon": "./icon.jpg",
   "authors": [
     {
